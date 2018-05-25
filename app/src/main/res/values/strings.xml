@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">PhotoGallery</string>
+    <string name="search_photo_title">PhotoGallery</string>
+    <string name="todo">TODO</string>
+    <string name="menu_main_tooltip_text">Enter a link to receive photos</string>
+</resources>
