@@ -14,7 +14,10 @@ class MyApplication : Application() {
     }
 
     override fun onCreate() {
+        //initdatabase
+        DataBaseCreator.createDataBase(this)
         super.onCreate()
+
         //init Dagger 2
         buildComponent()
 

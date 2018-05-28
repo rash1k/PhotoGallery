@@ -10,16 +10,9 @@ import javax.inject.Singleton
  class ManagerModule {
 
 
-
     @Singleton
     @Provides
     fun provideMyNetworkManager(): NetworkManager {
         return NetworkManager()
     }
-
-  /*  @Singleton
-    @Provides
-    fun provideMyPreferenceManager(context: Application): MyPreferenceManager {
-        return MyPreferenceManager(context)
-    }*/
 }

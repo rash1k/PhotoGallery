@@ -2,13 +2,14 @@ package com.example.cherkassy.galleryphoto.ui.adapter
 
 import android.content.Context
 import android.support.annotation.Nullable
+import android.support.v7.util.DiffUtil
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.bumptech.glide.Glide
 import com.example.cherkassy.galleryphoto.R
-import com.example.cherkassy.galleryphoto.ui.model.PhotoItem
+import com.example.cherkassy.galleryphoto.data.PhotoItem
 import kotlinx.android.synthetic.main.item_photo.view.*
 
 
@@ -17,12 +18,60 @@ class PhotoAdapter(context: Context,
                    private val mImageClickListener: OnItemClickListener? = null)
     : RecyclerView.Adapter<PhotoAdapter.PhotoViewHolder>() {
 
-    private var mItems: ArrayList<PhotoItem> = arrayListOf()
+    private var mItemsPhoto: MutableList<PhotoItem> = mutableListOf()
     private var layoutInflater: LayoutInflater = LayoutInflater.from(context)
 
 
-    fun setSearchResult(mItems: ArrayList<PhotoItem>) {
-        this.mItems = mItems
+
+    fun addItem(photoItem: PhotoItem) {
+        mItemsPhoto.add(photoItem)
+        notifyItemInserted(mItemsPhoto.size - 1)
+    }
+
+    fun clearData() {
+        mItemsPhoto.clear()
+        notifyDataSetChanged()
+    }
+
+    internal fun swapData(newRestaurants: MutableList<PhotoItem>) {
+        if (mItemsPhoto.isEmpty()) {
+            mItemsPhoto = newRestaurants
+            notifyDataSetChanged()
+        } else {
+            /*
+           * Otherwise we use DiffUtil to calculate the changes and update accordingly. This
+            * shows the four methods you need to override to return a DiffUtil callback. The
+            * old list is the current list stored in mForecast, where the new list is the new
+            * values passed in from the observing the database.
+            */
+            val result = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
+                override fun getOldListSize(): Int {
+                    return mItemsPhoto.size
+                }
+
+                override fun getNewListSize(): Int {
+                    return newRestaurants.size
+                }
+
+                override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                    return mItemsPhoto[oldItemPosition].id == newRestaurants[newItemPosition].id
+
+                }
+
+                override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                    val oldPhoto = mItemsPhoto[oldItemPosition]
+                    val newPhoto = newRestaurants[newItemPosition]
+                    return oldPhoto.id == newPhoto.id && oldPhoto.urlLinkPhoto == (newPhoto.urlLinkPhoto)
+                }
+            })
+            mItemsPhoto = newRestaurants
+            result.dispatchUpdatesTo(this)
+        }
+    }
+
+    fun setSearchResult(photoItems: List<PhotoItem>) {
+        mItemsPhoto.clear()
+        mItemsPhoto.addAll(photoItems)
         notifyDataSetChanged()
     }
 
@@ -34,7 +83,7 @@ class PhotoAdapter(context: Context,
     }
 
     override fun getItemCount(): Int {
-        return mItems.size
+        return mItemsPhoto.size
     }
 
     override fun onViewRecycled(holder: PhotoViewHolder) {
@@ -43,7 +92,7 @@ class PhotoAdapter(context: Context,
     }
 
     override fun onBindViewHolder(holder: PhotoViewHolder, position: Int) {
-        val photoItem = mItems[position]
+        val photoItem = mItemsPhoto[position]
         holder.bindData(photoItem)
     }
 
@@ -55,36 +104,29 @@ class PhotoAdapter(context: Context,
 
         private val mImageViewPhoto = view.image_view_photo
 
-        val imageUrl = "http://bipbap.ru/wp-content/uploads/2017/04/000f_7290754.jpg"
         fun bindData(itemPhoto: PhotoItem) {
 
-            Glide.with(itemView.context)
-                    .load(itemPhoto.urlLinksPhoto)
-                    .into(mImageViewPhoto)
+            if (itemPhoto.bytePhoto != null) {
+                Glide.with(itemView.context)
+                        .load(itemPhoto.bytePhoto)
+                        .into(mImageViewPhoto)
 
-            /* Picasso.get()
-                     .load(itemPhoto.urlLinksPhoto)
-                     .into(mImageViewPhoto)*/
-//                    .centerCrop()
-//                    .fit()
-//                    .placeholder(R.drawable.user_placeholder)
-//                    .error(R.drawable.user_placeholder_error)
-
+            } else {
+                Glide.with(itemView.context)
+                        .load(itemPhoto.urlLinkPhoto)
+                        .into(mImageViewPhoto)
+            }
 
             mImageViewPhoto.setOnClickListener {
                 mImageClickListener?.itemDetailClick(itemPhoto)
             }
-
-//          progressView.setVisibility(View.GONE);
-//          Picasso.get().load(R.drawable.landing_screen).into(imageView1);
-//          Picasso.get().load("file:///android_asset/DvpvklR.png").into(imageView2);
-//         Picasso.get().load(new File(...)).into(imageView3);
         }
 
         fun unBindData() {
             mImageViewPhoto.setImageBitmap(null)
             mImageViewPhoto.setOnClickListener(null)
         }
+
     }
 
     interface OnItemClickListener {
